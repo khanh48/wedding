@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Media Gallery</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+    }
+    header {
+      padding: 24px 16px;
+      text-align: center;
+    }
+    header h1 { margin: 0 0 8px; }
+    header p { margin: 0; color: #aaa; }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+      padding: 16px;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .media-item {
+      position: relative;
+      aspect-ratio: 16 / 10;
+      overflow: hidden;
+      border-radius: 10px;
+      background: #222;
+      cursor: pointer;
+    }
+
+    .media-item img,
+    .media-item video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .video-badge {
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+      padding: 5px 8px;
+      border-radius: 6px;
+      background: rgba(0,0,0,.7);
+      font-size: 13px;
+    }
+
+    .empty {
+      text-align: center;
+      color: #888;
+      padding: 60px 20px;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(0,0,0,.92);
+    }
+
+    .modal.open { display: flex; }
+
+    .modal-content {
+      max-width: 95vw;
+      max-height: 90vh;
+    }
+
+    .modal img,
+    .modal video {
+      display: block;
+      max-width: 95vw;
+      max-height: 90vh;
+      object-fit: contain;
+    }
+
+    .close {
+      position: fixed;
+      top: 16px;
+      right: 20px;
+      width: 42px;
+      height: 42px;
+      border: 0;
+      border-radius: 50%;
+      background: rgba(255,255,255,.15);
+      color: white;
+      font-size: 28px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Media Gallery</h1>
+  <p>Hình ảnh & video</p>
+</header>
+
+<main id="gallery" class="gallery"></main>
+
+<div id="empty" class="empty" style="display:none">
+  Chưa có media.
+</div>
+
+<div id="modal" class="modal">
+  <button class="close" onclick="closeModal()">×</button>
+  <div id="modalContent" class="modal-content"></div>
+</div>
+
+<script>
+  /*
+   * GitHub Pages không cho JavaScript đọc trực tiếp danh sách file
+   * trong thư mục /media.
+   *
+   * Vì vậy, chỉ cần cập nhật mảng MEDIA bên dưới mỗi khi thêm file.
+   */
+  const MEDIA = [
+    // "image1.jpg",
+    // "image2.png",
+    // "video1.mp4",
+    // "video2.webm",
+  ];
+
+  const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "gif", "webp", "avif"];
+  const VIDEO_EXTENSIONS = ["mp4", "webm", "ogg", "mov"];
+
+  const gallery = document.getElementById("gallery");
+  const empty = document.getElementById("empty");
+  const modal = document.getElementById("modal");
+  const modalContent = document.getElementById("modalContent");
+
+  function getExtension(filename) {
+    return filename.split(".").pop().toLowerCase();
+  }
+
+  function renderGallery() {
+    if (MEDIA.length === 0) {
+      empty.style.display = "block";
+      return;
+    }
+
+    MEDIA.forEach(filename => {
+      const ext = getExtension(filename);
+      const url = "media/" + encodeURIComponent(filename);
+
+      const item = document.createElement("div");
+      item.className = "media-item";
+
+      if (IMAGE_EXTENSIONS.includes(ext)) {
+        const img = document.createElement("img");
+        img.src = url;
+        img.alt = filename;
+        img.loading = "lazy";
+
+        item.appendChild(img);
+        item.onclick = () => openImage(url, filename);
+
+      } else if (VIDEO_EXTENSIONS.includes(ext)) {
+        const video = document.createElement("video");
+        video.src = url;
+        video.muted = true;
+        video.preload = "metadata";
+
+        const badge = document.createElement("div");
+        badge.className = "video-badge";
+        badge.textContent = "▶ Video";
+
+        item.appendChild(video);
+        item.appendChild(badge);
+        item.onclick = () => openVideo(url);
+
+      } else {
+        return;
+      }
+
+      gallery.appendChild(item);
+    });
+  }
+
+  function openImage(url, filename) {
+    modalContent.innerHTML = "";
+
+    const img = document.createElement("img");
+    img.src = url;
+    img.alt = filename;
+
+    modalContent.appendChild(img);
+    modal.classList.add("open");
+  }
+
+  function openVideo(url) {
+    modalContent.innerHTML = "";
+
+    const video = document.createElement("video");
+    video.src = url;
+    video.controls = true;
+    video.autoplay = true;
+    video.playsInline = true;
+
+    modalContent.appendChild(video);
+    modal.classList.add("open");
+  }
+
+  function closeModal() {
+    modal.classList.remove("open");
+    modalContent.innerHTML = "";
+  }
+
+  modal.addEventListener("click", event => {
+    if (event.target === modal) {
+      closeModal();
+    }
+  });
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape") {
+      closeModal();
+    }
+  });
+
+  renderGallery();
+</script>
+
+</body>
+</html>
