@@ -1,85 +1,848 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Media Gallery</title>
+
 <style>
-*{box-sizing:border-box}body{margin:0;background:#111;color:#fff;font-family:Arial,sans-serif}
-header{text-align:center;padding:28px 16px}h1{margin:0 0 8px}.sub{color:#999}
-.gallery{max-width:1200px;margin:auto;padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
-.item{position:relative;aspect-ratio:16/10;overflow:hidden;border-radius:10px;background:#222;cursor:pointer}
-.item img,.item video{width:100%;height:100%;object-fit:cover;display:block}
-.name{position:absolute;left:0;right:0;bottom:0;padding:10px;background:linear-gradient(transparent,rgba(0,0,0,.85));font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.badge{position:absolute;top:10px;right:10px;background:#000b;padding:5px 8px;border-radius:6px;font-size:12px}
-.empty{text-align:center;color:#888;padding:60px 20px}
-.modal{position:fixed;inset:0;z-index:10;display:none;align-items:center;justify-content:center;padding:20px;background:#000f}
-.modal.open{display:flex}.modal img,.modal video{max-width:95vw;max-height:90vh}.close{position:fixed;top:15px;right:18px;width:42px;height:42px;border:0;border-radius:50%;background:#ffffff22;color:#fff;font-size:28px;cursor:pointer}
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #111;
+    color: #fff;
+    font-family: Arial, sans-serif;
+}
+
+header {
+    text-align: center;
+    padding: 28px 16px;
+}
+
+header h1 {
+    margin: 0 0 8px;
+}
+
+.subtitle {
+    color: #999;
+}
+
+.gallery {
+    max-width: 1200px;
+    margin: auto;
+    padding: 16px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+.item {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    overflow: hidden;
+    border-radius: 10px;
+    background: #222;
+    cursor: pointer;
+}
+
+.item img,
+.item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.name {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 10px;
+    background: linear-gradient(transparent, rgba(0,0,0,.85));
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0,0,0,.7);
+    padding: 5px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.empty {
+    text-align: center;
+    color: #888;
+    padding: 60px 20px;
+}
+
+/* Modal */
+.modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0,0,0,.94);
+}
+
+.modal.open {
+    display: flex;
+}
+
+.modal-inner {
+    position: relative;
+    max-width: 95vw;
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.modal img,
+.modal video {
+    max-width: 95vw;
+    max-height: 82vh;
+    object-fit: contain;
+}
+
+.close {
+    position: fixed;
+    top: 15px;
+    right: 18px;
+    width: 42px;
+    height: 42px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255,255,255,.15);
+    color: #fff;
+    font-size: 28px;
+    cursor: pointer;
+    z-index: 20;
+}
+
+/* Video controls */
+.video-options {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.video-options button {
+    border: 1px solid rgba(255,255,255,.25);
+    background: rgba(255,255,255,.1);
+    color: white;
+    padding: 8px 13px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.video-options button.active {
+    background: rgba(255,255,255,.3);
+}
+
+.video-title {
+    margin-top: 8px;
+    color: #bbb;
+    font-size: 14px;
+    text-align: center;
+}
 </style>
 </head>
+
 <body>
-<header><h1>Media Gallery</h1><div id="count" class="sub"></div></header>
+
+<header>
+    <h1>Media Gallery</h1>
+    <div id="count" class="subtitle"></div>
+</header>
+
 <main id="gallery" class="gallery"></main>
-<div id="empty" class="empty" style="display:none">Chưa có media.</div>
-<div id="modal" class="modal"><button class="close" onclick="closeModal()">×</button><div id="modalContent"></div></div>
+
+<div id="empty" class="empty" style="display:none">
+    Chưa có media.
+</div>
+
+<!-- Modal -->
+<div id="modal" class="modal">
+
+    <button class="close" onclick="closeModal()">×</button>
+
+    <div class="modal-inner">
+        <div id="modalContent"></div>
+
+        <div id="videoOptions"
+             class="video-options"
+             style="display:none">
+
+            <button id="loopButton"
+                    onclick="toggleLoop()">
+                🔁 Replay
+            </button>
+
+            <button id="playlistButton"
+                    onclick="togglePlaylistLoop()">
+                ▶ Phát tiếp
+            </button>
+
+        </div>
+
+        <div id="videoTitle"
+             class="video-title">
+        </div>
+    </div>
+
+</div>
 
 <script>
-const R2_BASE_URL="https://pub-d486894ad6c04e98a81790bb0093f586.r2.dev";
-const MEDIA_JSON="media.json";
 
-const gallery=document.getElementById("gallery"), empty=document.getElementById("empty");
-const count=document.getElementById("count"), modal=document.getElementById("modal");
-const modalContent=document.getElementById("modalContent");
+/*
+|--------------------------------------------------------------------------
+| Cloudflare R2
+|--------------------------------------------------------------------------
+*/
 
-function mediaUrl(path){
-  return R2_BASE_URL.replace(/\/$/,"")+"/"+path.split("/").map(encodeURIComponent).join("/");
+const R2_BASE_URL =
+    "https://pub-d486894ad6c04e98a81790bb0093f586.r2.dev";
+
+const MEDIA_JSON = "media.json";
+
+
+/*
+|--------------------------------------------------------------------------
+| State
+|--------------------------------------------------------------------------
+*/
+
+let mediaList = [];
+let currentVideoIndex = -1;
+
+let replayEnabled = false;
+let playlistLoopEnabled = false;
+
+
+/*
+|--------------------------------------------------------------------------
+| DOM
+|--------------------------------------------------------------------------
+*/
+
+const gallery =
+    document.getElementById("gallery");
+
+const empty =
+    document.getElementById("empty");
+
+const count =
+    document.getElementById("count");
+
+const modal =
+    document.getElementById("modal");
+
+const modalContent =
+    document.getElementById("modalContent");
+
+const videoOptions =
+    document.getElementById("videoOptions");
+
+const videoTitle =
+    document.getElementById("videoTitle");
+
+const loopButton =
+    document.getElementById("loopButton");
+
+const playlistButton =
+    document.getElementById("playlistButton");
+
+
+/*
+|--------------------------------------------------------------------------
+| URL
+|--------------------------------------------------------------------------
+*/
+
+function mediaUrl(path) {
+
+    return R2_BASE_URL.replace(/\/$/, "") +
+        "/" +
+        path
+            .split("/")
+            .map(encodeURIComponent)
+            .join("/");
 }
-function getType(item){
-  if(item.type)return item.type.toLowerCase();
-  const e=item.path.split(".").pop().toLowerCase();
-  if(["jpg","jpeg","png","gif","webp","avif"].includes(e))return"image";
-  if(["mp4","webm","ogg","mov"].includes(e))return"video";
-}
-async function loadMedia(){
-  try{
-    const r=await fetch(MEDIA_JSON+"?v="+Date.now());
-    if(!r.ok)throw Error();
-    const media=await r.json();
-    if(!Array.isArray(media)||!media.length){empty.style.display="block";return}
-    count.textContent=media.length+" media";
-    render(media);
-  }catch(e){
-    empty.textContent="Không thể tải media.json.";
-    empty.style.display="block";
-  }
-}
-function render(media){
-  media.forEach(item=>{
-    const type=getType(item);if(!type)return;
-    const url=mediaUrl(item.path), el=document.createElement("div");
-    el.className="item";
-    if(type==="image"){
-      const img=document.createElement("img");img.src=url;img.alt=item.name||item.path;img.loading="lazy";
-      el.appendChild(img);el.onclick=()=>openImage(url,item.name||"");
-    }else{
-      const v=document.createElement("video");v.src=url;v.muted=true;v.preload="metadata";v.playsInline=true;
-      const b=document.createElement("div");b.className="badge";b.textContent="▶ VIDEO";
-      el.append(v,b);el.onclick=()=>openVideo(url);
+
+
+/*
+|--------------------------------------------------------------------------
+| Detect media type
+|--------------------------------------------------------------------------
+*/
+
+function getType(item) {
+
+    if (item.type) {
+        return item.type.toLowerCase();
     }
-    if(item.name){const n=document.createElement("div");n.className="name";n.textContent=item.name;el.appendChild(n)}
-    gallery.appendChild(el);
-  });
+
+    const ext =
+        item.path
+            .split(".")
+            .pop()
+            .toLowerCase();
+
+    if (
+        ["jpg", "jpeg", "png", "gif", "webp", "avif"]
+        .includes(ext)
+    ) {
+        return "image";
+    }
+
+    if (
+        ["mp4", "webm", "ogg", "mov"]
+        .includes(ext)
+    ) {
+        return "video";
+    }
+
+    return null;
 }
-function openImage(url,name){
-  modalContent.innerHTML="";const img=document.createElement("img");img.src=url;img.alt=name;modalContent.appendChild(img);modal.classList.add("open");
+
+
+/*
+|--------------------------------------------------------------------------
+| Load media.json
+|--------------------------------------------------------------------------
+*/
+
+async function loadMedia() {
+
+    try {
+
+        const response =
+            await fetch(
+                MEDIA_JSON +
+                "?v=" +
+                Date.now()
+            );
+
+        if (!response.ok) {
+            throw new Error(
+                "Cannot load media.json"
+            );
+        }
+
+        mediaList =
+            await response.json();
+
+        if (
+            !Array.isArray(mediaList) ||
+            mediaList.length === 0
+        ) {
+            empty.style.display = "block";
+            return;
+        }
+
+        count.textContent =
+            mediaList.length +
+            " media";
+
+        renderGallery();
+
+    } catch (error) {
+
+        console.error(error);
+
+        empty.textContent =
+            "Không thể tải media.json.";
+
+        empty.style.display = "block";
+    }
 }
-function openVideo(url){
-  modalContent.innerHTML="";const v=document.createElement("video");v.src=url;v.controls=true;v.autoplay=true;v.playsInline=true;modalContent.appendChild(v);modal.classList.add("open");
+
+
+/*
+|--------------------------------------------------------------------------
+| Render gallery
+|--------------------------------------------------------------------------
+*/
+
+function renderGallery() {
+
+    gallery.innerHTML = "";
+
+    mediaList.forEach(
+        (item, index) => {
+
+            const type =
+                getType(item);
+
+            if (!type) {
+                return;
+            }
+
+            const url =
+                mediaUrl(item.path);
+
+            const element =
+                document.createElement("div");
+
+            element.className = "item";
+
+
+            /*
+             * IMAGE
+             */
+
+            if (type === "image") {
+
+                const img =
+                    document.createElement("img");
+
+                img.src = url;
+                img.alt =
+                    item.name ||
+                    item.path;
+
+                img.loading = "lazy";
+
+                element.appendChild(img);
+
+                element.onclick =
+                    () =>
+                        openImage(
+                            url,
+                            item.name || ""
+                        );
+            }
+
+
+            /*
+             * VIDEO
+             */
+
+            if (type === "video") {
+
+                const video =
+                    document.createElement("video");
+
+                video.src = url;
+
+                video.muted = true;
+                video.preload = "metadata";
+                video.playsInline = true;
+
+                const badge =
+                    document.createElement("div");
+
+                badge.className = "badge";
+
+                badge.textContent =
+                    "▶ VIDEO";
+
+                element.appendChild(video);
+                element.appendChild(badge);
+
+                element.onclick =
+                    () =>
+                        openVideo(
+                            index
+                        );
+            }
+
+
+            /*
+             * Name
+             */
+
+            if (item.name) {
+
+                const name =
+                    document.createElement("div");
+
+                name.className = "name";
+
+                name.textContent =
+                    item.name;
+
+                element.appendChild(name);
+            }
+
+
+            gallery.appendChild(element);
+        }
+    );
 }
-function closeModal(){modal.classList.remove("open");modalContent.innerHTML=""}
-modal.addEventListener("click",e=>{if(e.target===modal)closeModal()});
-document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});
+
+
+/*
+|--------------------------------------------------------------------------
+| Open image
+|--------------------------------------------------------------------------
+*/
+
+function openImage(url, name) {
+
+    modalContent.innerHTML = "";
+
+    videoOptions.style.display =
+        "none";
+
+    videoTitle.textContent =
+        name;
+
+    const img =
+        document.createElement("img");
+
+    img.src = url;
+
+    img.alt = name;
+
+    modalContent.appendChild(img);
+
+    modal.classList.add("open");
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Open video
+|--------------------------------------------------------------------------
+*/
+
+function openVideo(index) {
+
+    const item =
+        mediaList[index];
+
+    if (!item) {
+        return;
+    }
+
+    currentVideoIndex =
+        index;
+
+    const url =
+        mediaUrl(item.path);
+
+    modalContent.innerHTML = "";
+
+    const video =
+        document.createElement("video");
+
+    video.src = url;
+
+    video.controls = true;
+
+    video.autoplay = true;
+
+    video.playsInline = true;
+
+    /*
+     * Replay:
+     * Video hiện tại tự phát lại.
+     */
+    video.loop =
+        replayEnabled;
+
+    /*
+     * Khi video kết thúc:
+     * Nếu playlist loop bật,
+     * chuyển sang video tiếp theo.
+     */
+    video.addEventListener(
+        "ended",
+        handleVideoEnded
+    );
+
+    modalContent.appendChild(video);
+
+    videoOptions.style.display =
+        "flex";
+
+    videoTitle.textContent =
+        item.name ||
+        item.path;
+
+    updateButtons();
+
+    modal.classList.add("open");
+
+    /*
+     * Một số browser chặn autoplay.
+     * Người dùng vẫn có thể bấm Play.
+     */
+    video.play().catch(() => {});
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Replay
+|--------------------------------------------------------------------------
+*/
+
+function toggleLoop() {
+
+    replayEnabled =
+        !replayEnabled;
+
+    const video =
+        modalContent.querySelector(
+            "video"
+        );
+
+    if (video) {
+
+        video.loop =
+            replayEnabled;
+
+        /*
+         * Replay và playlist loop
+         * không nên hoạt động đồng thời.
+         */
+        if (replayEnabled) {
+            playlistLoopEnabled =
+                false;
+        }
+    }
+
+    updateButtons();
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Playlist loop
+|--------------------------------------------------------------------------
+*/
+
+function togglePlaylistLoop() {
+
+    playlistLoopEnabled =
+        !playlistLoopEnabled;
+
+    /*
+     * Tắt replay khi chuyển sang
+     * chế độ phát tiếp.
+     */
+    if (playlistLoopEnabled) {
+
+        replayEnabled =
+            false;
+
+        const video =
+            modalContent.querySelector(
+                "video"
+            );
+
+        if (video) {
+            video.loop = false;
+        }
+    }
+
+    updateButtons();
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Video ended
+|--------------------------------------------------------------------------
+*/
+
+function handleVideoEnded(event) {
+
+    /*
+     * Nếu Replay đang bật,
+     * browser tự loop bằng video.loop.
+     */
+    if (replayEnabled) {
+        return;
+    }
+
+    /*
+     * Nếu playlist loop không bật,
+     * dừng tại video hiện tại.
+     */
+    if (!playlistLoopEnabled) {
+        return;
+    }
+
+    playNextVideo();
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Play next video
+|--------------------------------------------------------------------------
+*/
+
+function playNextVideo() {
+
+    let nextIndex =
+        currentVideoIndex + 1;
+
+    /*
+     * Bỏ qua image,
+     * tìm video tiếp theo.
+     */
+    while (
+        nextIndex < mediaList.length &&
+        getType(mediaList[nextIndex]) !== "video"
+    ) {
+        nextIndex++;
+    }
+
+    /*
+     * Nếu hết danh sách:
+     * quay lại video đầu tiên.
+     */
+    if (
+        nextIndex >= mediaList.length
+    ) {
+
+        nextIndex =
+            mediaList.findIndex(
+                item =>
+                    getType(item) === "video"
+            );
+    }
+
+    /*
+     * Không có video.
+     */
+    if (nextIndex < 0) {
+        return;
+    }
+
+    openVideo(nextIndex);
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Buttons
+|--------------------------------------------------------------------------
+*/
+
+function updateButtons() {
+
+    loopButton.classList.toggle(
+        "active",
+        replayEnabled
+    );
+
+    playlistButton.classList.toggle(
+        "active",
+        playlistLoopEnabled
+    );
+
+    loopButton.textContent =
+        replayEnabled
+            ? "🔁 Replay: ON"
+            : "🔁 Replay";
+
+    playlistButton.textContent =
+        playlistLoopEnabled
+            ? "▶ Phát tiếp: ON"
+            : "▶ Phát tiếp";
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Close
+|--------------------------------------------------------------------------
+*/
+
+function closeModal() {
+
+    modal.classList.remove("open");
+
+    /*
+     * Dừng video khi đóng.
+     */
+    const video =
+        modalContent.querySelector(
+            "video"
+        );
+
+    if (video) {
+        video.pause();
+    }
+
+    modalContent.innerHTML = "";
+
+    videoOptions.style.display =
+        "none";
+
+    videoTitle.textContent = "";
+
+    currentVideoIndex = -1;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Close by clicking background
+|--------------------------------------------------------------------------
+*/
+
+modal.addEventListener(
+    "click",
+    event => {
+
+        if (
+            event.target === modal
+        ) {
+            closeModal();
+        }
+    }
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| ESC
+|--------------------------------------------------------------------------
+*/
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        if (
+            event.key === "Escape"
+        ) {
+            closeModal();
+        }
+    }
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| Start
+|--------------------------------------------------------------------------
+*/
+
 loadMedia();
+
 </script>
+
 </body>
 </html>
